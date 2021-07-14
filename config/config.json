@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "opoliarenk",
+    "password": "securepass",
+    "database": "film",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "opoliarenk",
+    "password": "securepass",
+    "database": "film",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "opoliarenk",
+    "password": "securepass",
+    "database": "film",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
