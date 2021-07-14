@@ -119,7 +119,7 @@ exports.importFromFile = async(req, res) => {
         const films = fs.readFileSync(file.path, 'utf8').split('\n');
 
         for (let film of films) {
-            console.log(film.split(/: /)[1]);
+            console.log(film.split(/^[\w]*:\s/)[1]);
 
             // await Film.create({
             //     title: film[0].split(/, /),
