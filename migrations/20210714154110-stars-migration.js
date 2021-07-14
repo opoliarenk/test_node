@@ -8,7 +8,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      filmId: {
+      filmID: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },

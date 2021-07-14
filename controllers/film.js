@@ -1,15 +1,16 @@
 'use strict';
 
 const Film = require('../models/Film');
-const FilmStar = require('../models/FilmStar');
+const Star = require('../models/Star');
 const fs = require('fs');
 
 //DONE
 exports.addFilm = async(req, res) => {
-    const {title, releaseYear, format} = req.body;
-    const stars = req.body.stars.split(",");
-
     try {
+        const {title, releaseYear, format} = req.body;
+        const stars = req.body.stars.split(", ");
+
+        //create film information
         let newFilm = await Film.create({
             title: title,
             releaseYear: releaseYear,
@@ -17,8 +18,8 @@ exports.addFilm = async(req, res) => {
         });
 
         for (let star of stars) {
-            await FilmStar.create({
-                filmId: newFilm.id,
+            await Star.create({
+                filmID: newFilm.id,
                 starName: star,
             });
         }
@@ -27,44 +28,28 @@ exports.addFilm = async(req, res) => {
             success: true,
             message: 'film added successfully',
         });
-    } catch (e) {
-        console.log(e);
 
+    } catch (e) {
         res.status(200).json({
             success: false,
+            message: 'please enter all parameters',
         });
-    }
 
+    }
 }
 
 exports.deleteFilm = async(req, res) => {
-    const film = await Film.destroy({where: {id: req.params.id}});
+    try {
+        if (await Film.destroy({where: {id: req.params.id}})) {
+            res.status(200).json({
+                success: true,
+                message: 'delete film successfully',
+            });
+            return;
 
-    if (film) {
-        res.status(200).json({
-            success: true,
-            message: 'delete film successfully',
-        });
-    } else {
-        res.status(200).json({
-            success: false,
-            message: 'film not found',
-        });
-    }
-}
-
-exports.getFilmByID = async(req, res) => {
-    const id = req.params.id
-    const film = await Film.findOne({where: {id: id}});
-    const stars = await FilmStar.findAll({where: {filmId: id}}); //?
-
-    if (film) {
-        res.status(200).json({
-            success: true,
-            data: film,
-            stars: stars,
-        });
-    } else {
+        }
+        throw TypeError();
+    } catch (e) {
         res.status(200).json({
             success: false,
             message: 'film not found',
@@ -73,16 +58,20 @@ exports.getFilmByID = async(req, res) => {
 }
 
 exports.getFilmByName = async(req, res) => {
-    const filmName = req.body.filmName;
-    const film = await Film.findOne({where: {title: filmName}});
-    const stars = await FilmStar.findAll({where: {filmId: filmName}}); //?
+    try {
+        const filmName = req.body.filmName;
+        const film = await Film.findOne({where: {title: filmName}});
 
-    if (film) {
-        res.status(200).json({
-            success: true,
-            data: film,
-        })
-    } else {
+        if (film) {
+            res.status(200).json({
+                success: true,
+                data: film,
+            })
+            return
+        }
+        throw TypeError();
+
+    } catch (e) {
         res.status(200).json({
             success: false,
             message: 'film not found',
@@ -99,12 +88,37 @@ exports.getAllSorted = async(req, res) => {
     });
 }
 
+exports.getFilmByID = async(req, res) => {
+    try {
+        const id = req.params.id
+        const film = await Film.findOne({where: {id: id}});
+        const stars = await Star.findAll({where: {filmId: id}}); //?
+
+        if (film) {
+            res.status(200).json({
+                success: true,
+                data: film,
+                stars: stars,
+            });
+            return;
+        }
+
+        throw TypeError();
+
+    } catch (e) {
+        res.status(200).json({
+            success: false,
+            message: 'film not found',
+        });
+    }
+}
+
 exports.getFilmByStar = async(req, res) => {
-    const star = await FilmStar.findAll({where: {star: req.body.star}});
+    const star = await Star.findAll({where: {starName: req.body.star}});
     let films = {};
 
     for (let film of star) {
-        films.push(await Film.findOne({where: {id: film.id}}));
+        films.push(await Film.findOne({where: {id: film.filmID}}));
     }
     res.status(200).json({
         success: true,
@@ -114,25 +128,42 @@ exports.getFilmByStar = async(req, res) => {
 
 exports.importFromFile = async(req, res) => {
     const file = req.file;
+    const reg = /: (.+)/; //split by ': '
+    let stars;
 
     try {
-        const films = fs.readFileSync(file.path, 'utf8').split('\n');
+        const films = fs.readFileSync(file.path, 'utf8').split(/\n\n/);
 
         for (let film of films) {
-            console.log(film.split(/^[\w]*:\s/)[1]);
+            if (film) {
+                let filmParams = film.split('\n');
 
-            // await Film.create({
-            //     title: film[0].split(/, /),
-            // })
+                let newFilm = await Film.create({
+                    title: filmParams[0].split(reg)[1],
+                    releaseYear: filmParams[1].split(reg)[1],
+                    format: filmParams[2].split(reg)[1],
+                });
+
+                stars = filmParams[3].split(reg)[1].split(', ');
+
+                for (let star of stars) {
+                    await Star.create({
+                        filmID: newFilm.id,
+                        starName: star,
+                    });
+                }
+            }
         }
 
         res.status(200).json({
             success: true,
-            path: films,
         });
 
     } catch (err) {
         console.error(err)
+        res.status(200).json({
+            success: false,
+        })
     }
 
 }

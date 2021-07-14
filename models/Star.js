@@ -2,13 +2,13 @@
 
 const Sequelize = require("sequelize");
 
-module.exports = sequelize.define("Film", {
+module.exports = sequelize.define("Star", {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    filmId: {
+    filmID: {
         type: Sequelize.INTEGER,
         allowNull: false,
     },

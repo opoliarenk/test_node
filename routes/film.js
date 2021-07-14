@@ -6,7 +6,7 @@ const upload = require('multer')({dest: 'uploads/'});
 
 router.post('/addFilm', film.addFilm);
 
-router.delete('/deleteFilm', film.deleteFilm);
+router.delete('/deleteFilm/:id', film.deleteFilm);
 
 router.get('/getFilm/:id', film.getFilmByID);
 
