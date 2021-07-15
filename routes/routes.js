@@ -3,5 +3,5 @@
 module.exports = app => {
     const filmRouter = require('./film');
 
-    app.use('/app', filmRouter);
+    app.use('/film', filmRouter);
 }
